@@ -12,12 +12,14 @@ def get_video_title(url):
 
 class Course(models.Model):
     title = models.CharField(max_length=255, unique=True)
-    cover = models.ImageField(upload_to='static/resources/images')
+    cover = models.ImageField(upload_to='static/resources/images', default='static/resources/images/Нет картинки.jpg')
+
 
 class Block(models.Model):
     title = models.CharField(max_length=255, default=None)
     course = models.ForeignKey(Course, related_name='blocks', on_delete=models.CASCADE, default=None)
     order = models.PositiveIntegerField(default=0)
+
 
 class Item(models.Model):
     BLOCK_ITEM_CHOICES = [
@@ -28,10 +30,7 @@ class Item(models.Model):
         ('image', 'Image'),
         ('link', 'Link'),
         ('youtube', 'Youtube'),
-
-        # Add other choices for item types as necessary
     ]
-    # tab = models.BooleanField(default=False)
     block = models.ForeignKey(Block, related_name='items', on_delete=models.CASCADE, default=None)
     order = models.PositiveIntegerField(default=0)
 
@@ -48,11 +47,3 @@ class Item(models.Model):
         if not self.order:
             max_order_item = Item.objects.filter(block=self.block).order_by('-order').first()
             self.order = max_order_item.order + 1 if max_order_item else 1
-        # super().save(*args, **kwargs)
-
-    # def save(self, *args, **kwargs):
-    #     if not self.order:
-    #         # Set the order to the largest order value for this block plus 1
-    #         max_order_item = Item.objects.filter(block=self.block).order_by('-order').first()
-    #         self.order = max_order_item.order + 1 if max_order_item else 1
-    #     super().save(*args, **kwargs)

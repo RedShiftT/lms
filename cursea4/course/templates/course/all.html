@@ -4,21 +4,37 @@
 <title>Все курсы</title>
 
 {% block content %}
-    <div class="container">
-        <div class="row row-cols-1 row-cols-md-3 no-gutters">
-            {% for course in courses %}
-                    <div class="col mb-5 mx-auto">
-                        <div class="card h-100 border border-2" style="max-width: 300px;">
-                            <div class="card-img-top" style="height: 200px; width: 299px; overflow: hidden;">
-                                <img src="{{ course.cover.url }}" class="card-img-top card-img" alt="{{ course.title }}" style="object-fit: cover; height: 100%; width: 100%;">
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title">{{ course.title }}</h5>
-                                <a href="{{ course.title }}" class="btn btn-primary">Перейти</a>
-                            </div>
-                        </div>
-                    </div>
-            {% endfor %}
-      </div>
+
+<div class="container-fluid" style="margin-top: -2rem;">
+    <div class="search-box" style="margin-left: 4rem;">
+        <button class="btn-search">
+            <i class="fa-solid fa-magnifying-glass" style="color: #4479D9;"></i>
+        </button>
+        <input type="text" class="input-search" placeholder="Поиск">
     </div>
+
+    <div style="display: inline-flex; justify-content: flex-end; width: 100%; height: 0.5rem; margin-top: -2.75rem;">
+        <button type="button" class="btn btn-link" style=" color: #4479D9 !important; margin-right: 04.5rem;" onclick="window.location.href='https://www.google.com'">Добавить курс</button>
+    </div>
+
+    <hr class="border-primary my-4" style="width: 200%; margin: 0px 1rem 1rem -20% !important; border-color: #4479D9 !important">
+</div>
+
+<div class="container" style="margin: 0 !important; max-width: 100% !important; width: 100% !important; padding: 0 15px;">
+    <div class="justify-content-center row" style="">
+        {% for course in courses %}
+        <div class="col-auto mb-5">
+            <div class="card h-100 border border-2" style="max-width: 300px;">
+                <div class="card-img-top" style="height: 200px; width: 298.7px; overflow: hidden;">
+                    <img src="{{ course.cover.url }}" class="card-img-top card-img" alt="{{ course.title }}" style="object-fit: cover; height: 100%; width: 100%;">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ course.title }}</h5>
+                    <a href="{{ course.title }}" class="btn btn-primary">Перейти</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}

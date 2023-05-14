@@ -1,3 +1,5 @@
+import os
+
 from django.core.management import BaseCommand
 from course.models import Course, Block, Item
 
@@ -79,6 +81,9 @@ class Command(BaseCommand):
         ]
 
         for n in names:
-            course = Course.objects.create(title=n, cover='/static/resources/images/2.jpg')
+            course = Course.objects.create(title=n,
+                                           cover=f'/static/resources/images/{n}.jpg'
+                                           if os.path.isfile(fr'C:/Users/RedShifT/PycharmProjects/pythonProject/cursea4/static/resources/images/{n}.jpg')
+                                           else 'static/resources/images/Нет картинки.jpg')
 
 
