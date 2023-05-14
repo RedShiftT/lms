@@ -1,0 +1,42 @@
+{% extends '../base.html' %}
+{% load static %}
+
+{% block title %}
+course.title
+{% endblock %}
+
+{% block content%}
+<div class="card-box align-left">
+    <h4 class="card-title mbr-fonts-style mbr-white mb-3 display-5">
+        <strong>{{ course.title }}</strong>
+    </h4>
+    <p class="mbr-text mbr-fonts-style display-7">
+        {% for block in course.blocks.all %}
+            <ul>
+                {% if block.title %}
+                <h6 class="card-title mbr-fonts-style mbr-white mb-3 display-5" style="margin-bottom: 0rem !important;">
+                    {{ block.title }}
+                </h6>
+                {%endif%}
+
+                {% for item in block.items.all %}
+                    {% if item.type == 'image' %}
+                        <img src="{{ image.link }}" alt="{{ image.name }}">
+                    {% elif item.type == 'text' %}
+                        <ul>
+                            <p>{{ item.name }}</p>
+                        </ul>
+                    {% else %}
+                    <ul>
+                        <img src="{% static 'assets/icons/' %}{{ item.type|add:'.png' }}" class="noselect" style="height: 15px; width: auto; display: inline-block">
+                        <a href="{{ item.link }}" target="_blank" style="display: inline-block">
+                            {{ item.name }}
+                        </a>
+                    </ul>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </p>
+</div>
+{% endblock %}
