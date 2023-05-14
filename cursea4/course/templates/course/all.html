@@ -4,27 +4,21 @@
 <title>Все курсы</title>
 
 {% block content %}
-    <div class="row">
-        {% for course in courses %}
-            <div class="col-sm-4 mb-4">
-                <div class="card border">
-                    <img class="card-img-top noselect" src="{{ course.cover.url }}" style="height: 200px; width: auto; display: inline-block">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ course.title }}</h5>
-                        <a href="{{ course.title }}" class="btn btn-primary">Смотерть</a>
+    <div class="container">
+        <div class="row row-cols-1 row-cols-md-3 no-gutters">
+            {% for course in courses %}
+                    <div class="col mb-5 mx-auto">
+                        <div class="card h-100 border border-2" style="max-width: 300px;">
+                            <div class="card-img-top" style="height: 200px; width: 299px; overflow: hidden;">
+                                <img src="{{ course.cover.url }}" class="card-img-top card-img" alt="{{ course.title }}" style="object-fit: cover; height: 100%; width: 100%;">
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ course.title }}</h5>
+                                <a href="{{ course.title }}" class="btn btn-primary">Перейти</a>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        {% endfor %}
-            <div class="col-sm-4 mb-4">
-                <div class="card border">
-
-                    <img class="card-img-top noselect" src="{% static 'assets/icons/plus.png' %}" style="height: 200px; width: auto; display: inline-block">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ course.title }}</h5>
-                        <a href="{{ course.title }}" class="btn btn-primary">Смотерть</a>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
+      </div>
     </div>
 {% endblock %}
