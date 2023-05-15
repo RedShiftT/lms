@@ -5,6 +5,6 @@ from .views import courseview, allcoursesview
 app_name = 'course'
 
 urlpatterns = [
-    path('', allcoursesview),
+    path('', allcoursesview, name='all_courses'),
     path('<str:title>', courseview, name='1'),
 ]
