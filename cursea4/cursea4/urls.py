@@ -20,7 +20,7 @@ from django.urls import path, include
 from accounts.views import login_view, logout_view, registration
 from lms.views import home_view
 
-from course.views import courseview
+from course.views import CourseView
 
 urlpatterns = [
     path('login/', login_view, name='authentication'),
