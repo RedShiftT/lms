@@ -30,14 +30,14 @@
     <div class="search-box" style="margin-left: -1.5rem;">
         <form method="get" id="search-form" action="{% url 'course:all_courses' %}" style="margin-bottom: 0px;">
             <button class="btn-search" id="search-btn" type="submit">
-                <i class="fa-solid fa-magnifying-glass" style="color: #4479D9;"></i>
+                <i class="fa-solid fa-magnifying-glass"></i>
             </button>
             <input type="text" class="input-search" id="search-input" name="q" placeholder="Поиск" value="{{ request.GET.q }}">
         </form>
     </div>
 
     <div style="display: inline-flex; justify-content: flex-end; width: 100%; height: 0.5rem; margin-top: -2.75rem;">
-        <button type="button" class="btn btn-link" style=" color: #4479D9 !important; margin-right: -2rem;" onclick="window.location.href='https://www.google.com'">Добавить курс</button>
+        <button type="button" class="btn btn-link" style=" color: #4479D9 !important; margin-right: -2rem;" onclick="window.location.href='https://www.google.com'"><i class="fa-regular fa-file"></i>&ensp;Добавить курс</button>
     </div>
 
     <hr class="border-primary my-4" style="width: 200%; margin: 0px 1rem 1rem -20% !important; border-color: #4479D9 !important">

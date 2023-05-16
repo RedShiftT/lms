@@ -2,11 +2,17 @@ import os
 
 from django.core.management import BaseCommand
 from course.models import Course, Block, Item
+from accounts.models import CustomGroup
+import random
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        course = Course.objects.create(title='Схемотехника', cover='/static/resources/images/1.jpg')
+        group1 = CustomGroup.objects.get(name="101")
+        group2 = CustomGroup.objects.get(name="102")
+        course = Course.objects.create(title='Схемотехника', cover='/static/resources/images/1.jpg', visible=True)
+        course.groups.add(group1)
+        course.groups.add(group2)
 
         block = Block.objects.create(course=course, title='Видеоуроки')
         content = ['https://www.youtube.com/watch?v=9IKzf6Medww',
@@ -25,7 +31,9 @@ class Command(BaseCommand):
 
 
 
-        course = Course.objects.create(title='Мидовый пудж', cover='/static/resources/images/2.jpg')
+        course = Course.objects.create(title='Мидовый пудж', cover='/static/resources/images/2.jpg', visible=True)
+        course.groups.add(group1)
+        course.groups.add(group2)
         block = Block.objects.create(course=course, title='Гайды')
         content = [
             'https://www.youtube.com/watch?v=v8W7xePn9iQ',
@@ -40,7 +48,9 @@ class Command(BaseCommand):
 
 
 
-        course = Course.objects.create(title='EU4 Гайд на Англию', cover='/static/resources/images/2.jpg')
+        course = Course.objects.create(title='EU4 Гайд на Англию', cover='/static/resources/images/2.jpg', visible=True)
+        course.groups.add(group1)
+        course.groups.add(group2)
         block = Block.objects.create(course=course, title='Чем сильна Англия?')
         Item.objects.create(block=block, type='text', name="Англия - одна из самых опасных и сильных государств в Европке. У Англии одна из самых лучших форм правления: Английская монархия - представляет из себя смесь парламента с монархией, ее плюсы в том, что она включает в себя парламентские выборы, да и к тому же хорошие статы")
         Item.objects.create(block=block, type='text', name="Английская монархия:\n -Национальные беспорядки: -1.00\nГодовое изменение легитимности: +0.50\nМаксимум абсолютизма: -30.00\nЛимит управления: +50")
@@ -84,6 +94,7 @@ class Command(BaseCommand):
             course = Course.objects.create(title=n,
                                            cover=f'/static/resources/images/{n}.jpg'
                                            if os.path.isfile(fr'C:/Users/RedShifT/PycharmProjects/pythonProject/cursea4/static/resources/images/{n}.jpg')
-                                           else 'static/resources/images/Нет картинки.jpg')
-
+                                           else 'static/resources/images/Нет картинки.jpg',
+                                           visible=True)
+            course.groups.add(random.choice([group1, group2]))
 

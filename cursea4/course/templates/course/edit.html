@@ -1,0 +1,139 @@
+{% extends '../base.html' %}
+{% load static %}
+
+{% block title %}
+Редактирование: {{ course.title }}
+{% endblock %}
+
+{% block content%}
+<div class="card-box align-left">
+    Название курса:
+    <input type="text" onchange="course.title = $(this).val();console.log(course);" value="{{ course.title }}">
+            <span style="float: right; margin-top: 0;margin-right: 0;">
+            <button class="btn btn-link buttons" id="save-changes" style="padding-top: 0 !important;">
+                <i class="fa-solid fa-floppy-disk"></i>
+                &ensp;
+                <a href="{{ course.title }}/edit">
+                    <strong>Сохранить</strong>
+                </a>
+            </button>
+            <button class="btn btn-link buttons" style="padding-top: 0 !important;">
+                <i class="fa-solid fa-trash"></i>
+                &ensp;Удалить
+            </button>
+        </span>
+    <p class="mbr-text mbr-fonts-style display-7" id="allblocks">
+        {% for block in course.blocks.all %}
+            <ul class="border border-secondary p-3 mb-3 block" data-order="{{ block.order }}" >
+                <input type="number" onchange="
+                    prev_pos = $(this).data('value');
+                    $(this).data('value', $(this).val());
+                    new_pos = $(this).val();
+                    d = new_pos - prev_pos
+                    if (d > 0) {
+                         for (let i = 0; i != d; ++i) {
+                            console.log('a')
+                         }
+
+
+                    }
+                    else {
+
+                    }
+                    console.log(prev_pos, $(this).val());
+
+
+
+
+" class="" data-value="{{ block.order }}" name="order" min="1" step="1" value="{{ block.order }}" style="width: 3rem;">
+
+                <input type="text" onchange="course.blocks[$(this).closest('.block').data('order') - 1].title = $(this).val();" value="{{ block.title }}">
+                {% for item in block.items.all %}
+                    {% if item.type == 'image' %}
+                        <img src="{{ image.link }}" alt="{{ image.name }}">
+                    {% elif item.type == 'text' %}
+                        <ul>
+                            <p>{{ item.name }}</p>
+                        </ul>
+                    {% else %}
+                    <ul>
+                        <img src="{% static 'assets/icons/' %}{{ item.type|add:'.png' }}" class="noselect" style="height: 15px; width: auto; display: inline-block">
+                        <a href="{{ item.link }}" target="_blank" style="display: inline-block">
+                            {{ item.name }}
+                        </a>
+                    </ul>
+                    {% endif %}
+
+                {% endfor %}
+
+
+                    <ul border>
+                        <a href="{{ item.link }}" target="_blank" style="display: inline-block">
+                            <i class="fa-solid fa-plus"></i>
+                            &ensp;Добавить ссылку
+                        </a>
+                    </ul>
+
+
+            </ul>
+        {% endfor %}
+        <ul class="border border-secondary p-3 mb-3" id="addblock">
+            <button class="btn btn-link" onclick="
+                or = course.blocks.length + 1
+                course.blocks.push({title: 'Новый блок ' + or, order: or, items: []});
+                $('#addblock').prev().after($newBlock(or));">
+                <i class="fa-solid fa-plus"></i>
+                &ensp;Добавить блок
+            </button>
+        </ul>
+    </p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/jq-attrchange/dist/jq-attrchange.min.js"></script>
+
+<script>
+    var course = JSON.parse('{{ courseJSON|safe }}');
+    console.log(course)
+
+    $(document).ready(function() {
+        $('.block').attrchange({
+            trackValues: true,
+            callback: function(event) {
+                if (event.attributeName == 'data-order') {
+                    var order = $(this).attr('data-order');
+                    console.log(order);
+                }
+            }
+        });
+    });
+
+
+
+    function $newBlock(n){
+        return $(`<ul class="border border-secondary p-3 mb-3">
+                    <input type="text"  onchange="course.blocks[` + n + ` - 1].title = $(this).val();console.log(course);" value="Новый блок ` + n + `">
+                    <ul border>
+                        <a href="{{ item.link }}" target="_blank" style="display: inline-block">
+                            <i class="fa-solid fa-plus"></i>
+                            &ensp;Добавить ссылку
+                        </a>
+                    </ul>
+                </ul>`);
+    }
+
+
+    function $newItem(n){
+    return $(`<ul class="border border-secondary p-3 mb-3">
+                <input type="text"  onchange="course.blocks[` + n + ` - 1].title = $(this).val();console.log(course);" value="Новый блок ` + n + `">
+                <ul border>
+                    <a href="{{ item.link }}" target="_blank" style="display: inline-block">
+                        <i class="fa-solid fa-plus"></i>
+                        &ensp;Добавить ссылку
+                    </a>
+                </ul>
+            </ul>`);
+    }
+
+</script>
+
+
+{% endblock %}

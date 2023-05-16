@@ -2,6 +2,8 @@ from django.db import models
 import re
 import urllib.request
 
+from accounts.models import CustomGroup
+
 
 def get_video_title(url):
     response = urllib.request.urlopen(url)
@@ -13,12 +15,19 @@ def get_video_title(url):
 class Course(models.Model):
     title = models.CharField(max_length=255, unique=True)
     cover = models.ImageField(upload_to='static/resources/images', default='static/resources/images/Нет картинки.jpg')
-
+    visible = models.BooleanField(default=False)
+    groups = models.ManyToManyField(CustomGroup, blank=True)
 
 class Block(models.Model):
     title = models.CharField(max_length=255, default=None)
     course = models.ForeignKey(Course, related_name='blocks', on_delete=models.CASCADE, default=None)
     order = models.PositiveIntegerField(default=0)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.order:
+            max_order_item = Block.objects.filter(course=self.course).order_by('-order').first()
+            self.order = max_order_item.order + 1 if max_order_item else 1
 
 
 class Item(models.Model):

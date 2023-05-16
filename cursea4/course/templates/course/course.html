@@ -9,6 +9,19 @@ course.title
 <div class="card-box align-left">
     <h4 class="card-title mbr-fonts-style mbr-white mb-3 display-5">
         <strong>{{ course.title }}</strong>
+        <span style="float: right; margin-top: 0;margin-right: 0;">
+            <button class="btn btn-link buttons">
+                <i class="fa-solid fa-pencil"></i>
+                &ensp;
+                <a href="{{ course.title }}/edit">
+                    <strong>Редактировать</strong>
+                </a>
+            </button>
+            <button class="btn btn-link buttons">
+                <i class="fa-solid fa-trash"></i>
+                &ensp;Удалить
+            </button>
+        </span>
     </h4>
     <p class="mbr-text mbr-fonts-style display-7">
         {% for block in course.blocks.all %}
