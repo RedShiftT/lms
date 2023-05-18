@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.core import serializers
 import json
 
+
 @login_required
 def CourseView(request, title):
     course = get_object_or_404(Course, title=title)
@@ -20,15 +21,27 @@ def CourseView(request, title):
 
 @login_required
 def EditView(request, title):
-    course = get_object_or_404(Course, title=title)
+    if request.method == 'POST':
+        course_json = json.loads(request.body)['course_json']
+        update_course_from_json(course_json)
+        return JsonResponse({'status': 'success', 'message': 'Course updated successfully.'})
+    else:
+        course = get_object_or_404(Course, title=title)
 
-    return render(request, 'course/edit.html', {'course': course, 'courseJSON': course_detail(course)})
+        return render(request, 'course/edit.html', {'course': course, 'courseJSON': course_detail(course)})
+
 
 @login_required
 def DeleteView(request, title):
     course = get_object_or_404(Course, title=title)
     course.delete()
     return redirect('/course/')
+
+
+@login_required
+def NewCourseView(request):
+    course = Course.objects.create(title='Новый курс', visible=False)
+    return redirect('/course/' + str(course.title) + '/edit')
 
 
 @login_required
@@ -46,6 +59,7 @@ def AllСourseView(request):
         return JsonResponse({'html': html})
 
     return render(request, 'course/all.html', {"courses": courses})
+
 
 
 def course_detail(course):
@@ -71,3 +85,32 @@ def course_detail(course):
         course_dict['blocks'].append(block_dict)
 
     return json.dumps(course_dict)
+
+
+def update_course_from_json(course_dict):
+    course_dict = json.loads(course_dict)
+    print(course_dict['id'])
+    course_id = course_dict['id']
+    course = Course.objects.get(id=course_id)
+
+    # Update course fields
+    course.title = course_dict['title']
+    course.cover = course_dict['cover']
+    course.visible = course_dict['visible']
+    course.save()
+
+    # Update or create blocks and items
+    for block_dict in course_dict['blocks']:
+        block_title = block_dict['title']
+        block_order = block_dict['order']
+        block, _ = Block.objects.get_or_create(course=course, title=block_title, order=block_order)
+
+        for item_dict in block_dict['items']:
+            item_order = item_dict['order']
+            item_type = item_dict['type']
+            item_name = item_dict['name']
+            item_link = item_dict['link']
+            item, _ = Item.objects.get_or_create(block=block, order=item_order, type=item_type)
+            item.name = item_name
+            item.link = item_link
+            item.save()

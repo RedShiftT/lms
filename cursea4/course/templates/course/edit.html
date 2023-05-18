@@ -39,13 +39,11 @@
 <div class="card-box align-left" id="allblocks">
     Название курса:
     <input type="text" onchange="course.title = $(this).val();console.log(course);" value="{{ course.title }}">
+    &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Курс скрыт
+    <input class="form-check-input" style="margin-left: 0.7rem ;" onchange="course.hidden = !course.hidden" type="checkbox" value="" id="Visible" {% if course.hidden %} checked {% endif %}>
     <span style="float: right; margin-top: 0;margin-right: 0;">
-        <button class="btn btn-link buttons" id="save-changes" style="padding-top: 0 !important;">
-            <i class="fa-solid fa-floppy-disk"></i>
-            &ensp;
-            <a href="{{ course.title }}/edit">
-                <strong>Сохранить</strong>
-            </a>
+        <button class="btn btn-link buttons" id="save-changes" onclick="updateCourse()" style="padding-top: 0 !important;">
+            <i class="fa-solid fa-floppy-disk"></i>&ensp;<a><strong>Сохранить</strong></a>
         </button>
         <button class="btn btn-link buttons" style="padding-top: 0 !important;" onclick="$('#confirmModal').modal('show');">
             <i class="fa-solid fa-trash"></i>
@@ -56,6 +54,10 @@
         <ul class="border border-secondary p-3 mb-3 block" data-order="{{ block.order }}" >
             <input type="number" onchange="moveBlock(this)" class="order-input" data-order="{{ block.order }}" name="order" min="1" step="-1" value="{{ block.order }}" style="width: 3rem;">
             <input type="text" onchange="course.blocks[$(this).closest('.block').data('order') - 1].title = $(this).val();" value="{{ block.title }}">
+            <button class="btn btn-link buttons" style="padding-top: 0 !important;" onclick="deleteBlock();$(this).parent().remove();">
+                <i class="fa-solid fa-trash"></i>
+                &ensp;Удалить
+            </button>
             {% for item in block.items.all %}
                 {% if item.type == 'image' %}
                     <img src="{{ image.link }}" alt="{{ image.name }}">
@@ -72,24 +74,44 @@
                     </ul>
                 {% endif %}
             {% endfor %}
-            <ul border>
-                <a href="{{ item.link }}" target="_blank" style="display: inline-block">
-                    <i class="fa-solid fa-plus"></i>
-                    &ensp;Добавить ссылку
-                </a>
+            <ul border class="additem">
+                    <button class="btn btn-link" onclick="addItem();">
+                        <i class="fa-solid fa-plus"></i>
+                    &ensp;Добавить
+                </button>
             </ul>
         </ul>
     {% endfor %}
     <ul class="border border-secondary p-3 mb-3" id="addblock">
-        <button class="btn btn-link" onclick="
-            or = course.blocks.length + 1
-            course.blocks.push({title: 'Новый блок ' + or, order: or, items: []});
-            $('#addblock').prev().after($newBlock(or));">
+        <button class="btn btn-link" onclick="addBlock();">
             <i class="fa-solid fa-plus"></i>
             &ensp;Добавить блок
         </button>
     </ul>
 </div>
+
+<script>
+    async function updateCourse() {
+    console.log(JSON.stringify(course));
+      try {
+        const response = await fetch($(location).attr('href'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+          },
+          body: JSON.stringify({ course_json: JSON.stringify(course) }),
+        });
+
+        const data = await response.json();
+        console.log(data);
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+
+</script>
+
 
 <script>
 function DeleteCourse() {
@@ -119,11 +141,14 @@ function DeleteCourse() {
           var currentOrder = parseInt($(this).attr('data-order'), 10);
           if (currentOrder >= minOrder && currentOrder <= maxOrder) {
             if ($(this).find('.order-input').is(input)) {
+              course.blocks[order - 1].order = newOrder;
               $(this).attr('data-order', newOrder);
             } else if (newOrder < order) {
+              course.blocks[currentOrder - 1].order = currentOrder + 1
               $(this).attr('data-order', currentOrder + 1);
               $(this).find('.order-input').val(currentOrder + 1);
             } else {
+              course.blocks[currentOrder - 1].order = currentOrder - 1
               $(this).attr('data-order', currentOrder - 1);
               $(this).find('.order-input').val(currentOrder - 1);
             }
@@ -136,6 +161,9 @@ function DeleteCourse() {
           block.insertAfter(blocks.eq(newOrder - 1));
         }
       }
+      course.blocks.sort(function(a, b) {
+            return a.order - b.order;
+        });
     }
 
 </script>
@@ -146,15 +174,36 @@ function DeleteCourse() {
     var course = JSON.parse('{{ courseJSON|safe }}');
     console.log(course)
 
+    function getOrder() {
+        return $(this).closest('.block').data('order')
+    }
+
+    function deleteBlock() {
+        var deletedOrder = getOrder()
+        course.blocks.splice(deletedOrder - 1, 1);
+        $('.block').each(function(index) {
+          var order = $(this).data('order');
+
+          if (order > deletedOrder) {
+            $(this).data('order', order - 1);
+          }
+        });
+
+    }
 
 
+    function addBlock() {
+        or = course.blocks.length + 1
+        course.blocks.push({title: 'Новый блок ' + or, order: or, items: []});
+        $('#addblock').before($newBlock(or));
+    }
 
     function $newBlock(n){
         return $(`
          <ul class="border border-secondary p-3 mb-3 block" data-order="` + n + `" >
             <input type="number" onchange="moveBlock(this)" class="order-input" data-order="` + n + `" name="order" min="1" step="-1" value="` + n +`" style="width: 3rem;">
-            <input type="text" onchange="course.blocks[$(this).closest('.block').data('order') - 1].title = $(this).val();" value="Новый блок ` + n +`">
-
+            <input type="text" onchange="course.blocks[getOrder() - 1].title = $(this).val();" value="Новый блок ` + n +`">
+            <button class="btn btn-link buttons" style="padding-top: 0 !important;" onclick="deleteBlock();$(this).parent().remove();"><i class="fa-solid fa-trash"></i>&ensp;Удалить</button>
             <ul border>
                 <a href="" target="_blank" style="display: inline-block">
                     <i class="fa-solid fa-plus"></i>
@@ -163,8 +212,16 @@ function DeleteCourse() {
             </ul>
         </ul>
         `);
-    }
+        }
 
+    function addItem(){
+        var block = $(this).closest('.block');
+        var order = parseInt(block.attr('data-order'), 10);
+        or = course.blocks[order-1].items.length;
+        course.blocks[order-1].items.push({});
+        $(this).prev().after($newBlock(or));
+
+    }
 
     function $newItem(n){
     return $(`<ul class="border border-secondary p-3 mb-3">

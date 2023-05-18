@@ -15,13 +15,25 @@ def get_video_title(url):
 class Course(models.Model):
     title = models.CharField(max_length=255, unique=True)
     cover = models.ImageField(upload_to='static/resources/images', default='static/resources/images/Нет картинки.jpg')
-    visible = models.BooleanField(default=False)
+    hidden = models.BooleanField(default=True)
     groups = models.ManyToManyField(CustomGroup, blank=True)
+
+    def save(self, *args, **kwargs):
+        # Check if the course name already exists
+        if Course.objects.filter(title=self.title).exists():
+            # Append a number to the course name
+            i = 2
+            while Course.objects.filter(title=f'{self.title} {i}').exists():
+                i += 1
+            self.title = f'{self.title} {i}'
+
+        super().save(*args, **kwargs)
 
 class Block(models.Model):
     title = models.CharField(max_length=255, default=None)
     course = models.ForeignKey(Course, related_name='blocks', on_delete=models.CASCADE, default=None)
     order = models.PositiveIntegerField(default=0)
+    hidden = models.BooleanField(default=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
