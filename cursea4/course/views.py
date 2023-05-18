@@ -24,6 +24,12 @@ def EditView(request, title):
 
     return render(request, 'course/edit.html', {'course': course, 'courseJSON': course_detail(course)})
 
+@login_required
+def DeleteView(request, title):
+    course = get_object_or_404(Course, title=title)
+    course.delete()
+    return redirect('/course/')
+
 
 @login_required
 def AllСourseView(request):
@@ -40,6 +46,7 @@ def AllСourseView(request):
         return JsonResponse({'html': html})
 
     return render(request, 'course/all.html', {"courses": courses})
+
 
 def course_detail(course):
     course_data = serializers.serialize('json', [course])

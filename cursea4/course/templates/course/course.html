@@ -2,25 +2,48 @@
 {% load static %}
 
 {% block title %}
-course.title
+{{ course.title }}
 {% endblock %}
 
 {% block content%}
+<style>
+    .modal-dialog-centered {
+      min-height: 25% !important;
+      max-height: 25% !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+</style>
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog-centered modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel">Confirmation Required</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="$('#confirmModal').modal('hide');">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Вы уверены, что хотите удалить курс "{{ course.title }}"?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="$('#confirmModal').modal('hide');">Отмена</button>
+        <button type="button" class="btn btn-primary" id="confirmBtn" onclick="DeleteCourse()">Подтвердить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
 <div class="card-box align-left">
     <h4 class="card-title mbr-fonts-style mbr-white mb-3 display-5">
         <strong>{{ course.title }}</strong>
         <span style="float: right; margin-top: 0;margin-right: 0;">
-            <button class="btn btn-link buttons">
-                <i class="fa-solid fa-pencil"></i>
-                &ensp;
-                <a href="{{ course.title }}/edit">
-                    <strong>Редактировать</strong>
-                </a>
+            <button class="btn btn-link buttons" onclick="window.location.href = '{{ course.title }}/edit'">
+                <i class="fa-solid fa-pencil"></i>&ensp;<a><strong>Редактировать</strong></a>
             </button>
-            <button class="btn btn-link buttons">
-                <i class="fa-solid fa-trash"></i>
-                &ensp;Удалить
-            </button>
+            <button class="btn btn-link buttons" onclick="$('#confirmModal').modal('show');"><i class="fa-solid fa-trash"></i>Удалить</button>
         </span>
     </h4>
     <p class="mbr-text mbr-fonts-style display-7">
@@ -52,4 +75,14 @@ course.title
         {% endfor %}
     </p>
 </div>
+
+<script>
+function DeleteCourse() {
+     window.location.href = '/course/{{ course.title }}/delete';
+}
+</script>
+
+
+
+
 {% endblock %}

@@ -6,118 +6,163 @@
 {% endblock %}
 
 {% block content%}
-<div class="card-box align-left">
+<style>
+    .modal-dialog-centered {
+      min-height: 25% !important;
+      max-height: 25% !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+</style>
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog-centered modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel">Confirmation Required</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="$('#confirmModal').modal('hide');">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Вы уверены, что хотите удалить курс "{{ course.title }}"?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="$('#confirmModal').modal('hide');">Отмена</button>
+        <button type="button" class="btn btn-primary" id="confirmBtn" onclick="DeleteCourse()">Подтвердить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="card-box align-left" id="allblocks">
     Название курса:
     <input type="text" onchange="course.title = $(this).val();console.log(course);" value="{{ course.title }}">
-            <span style="float: right; margin-top: 0;margin-right: 0;">
-            <button class="btn btn-link buttons" id="save-changes" style="padding-top: 0 !important;">
-                <i class="fa-solid fa-floppy-disk"></i>
-                &ensp;
-                <a href="{{ course.title }}/edit">
-                    <strong>Сохранить</strong>
-                </a>
-            </button>
-            <button class="btn btn-link buttons" style="padding-top: 0 !important;">
-                <i class="fa-solid fa-trash"></i>
-                &ensp;Удалить
-            </button>
-        </span>
-    <p class="mbr-text mbr-fonts-style display-7" id="allblocks">
-        {% for block in course.blocks.all %}
-            <ul class="border border-secondary p-3 mb-3 block" data-order="{{ block.order }}" >
-                <input type="number" onchange="
-                    prev_pos = $(this).data('value');
-                    $(this).data('value', $(this).val());
-                    new_pos = $(this).val();
-                    d = new_pos - prev_pos
-                    if (d > 0) {
-                         for (let i = 0; i != d; ++i) {
-                            console.log('a')
-                         }
-
-
-                    }
-                    else {
-
-                    }
-                    console.log(prev_pos, $(this).val());
-
-
-
-
-" class="" data-value="{{ block.order }}" name="order" min="1" step="1" value="{{ block.order }}" style="width: 3rem;">
-
-                <input type="text" onchange="course.blocks[$(this).closest('.block').data('order') - 1].title = $(this).val();" value="{{ block.title }}">
-                {% for item in block.items.all %}
-                    {% if item.type == 'image' %}
-                        <img src="{{ image.link }}" alt="{{ image.name }}">
-                    {% elif item.type == 'text' %}
-                        <ul>
-                            <p>{{ item.name }}</p>
-                        </ul>
-                    {% else %}
+    <span style="float: right; margin-top: 0;margin-right: 0;">
+        <button class="btn btn-link buttons" id="save-changes" style="padding-top: 0 !important;">
+            <i class="fa-solid fa-floppy-disk"></i>
+            &ensp;
+            <a href="{{ course.title }}/edit">
+                <strong>Сохранить</strong>
+            </a>
+        </button>
+        <button class="btn btn-link buttons" style="padding-top: 0 !important;" onclick="$('#confirmModal').modal('show');">
+            <i class="fa-solid fa-trash"></i>
+            &ensp;Удалить
+        </button>
+    </span>
+    {% for block in course.blocks.all %}
+        <ul class="border border-secondary p-3 mb-3 block" data-order="{{ block.order }}" >
+            <input type="number" onchange="moveBlock(this)" class="order-input" data-order="{{ block.order }}" name="order" min="1" step="-1" value="{{ block.order }}" style="width: 3rem;">
+            <input type="text" onchange="course.blocks[$(this).closest('.block').data('order') - 1].title = $(this).val();" value="{{ block.title }}">
+            {% for item in block.items.all %}
+                {% if item.type == 'image' %}
+                    <img src="{{ image.link }}" alt="{{ image.name }}">
+                {% elif item.type == 'text' %}
+                    <ul>
+                        <p>{{ item.name }}</p>
+                    </ul>
+                {% else %}
                     <ul>
                         <img src="{% static 'assets/icons/' %}{{ item.type|add:'.png' }}" class="noselect" style="height: 15px; width: auto; display: inline-block">
                         <a href="{{ item.link }}" target="_blank" style="display: inline-block">
                             {{ item.name }}
                         </a>
                     </ul>
-                    {% endif %}
-
-                {% endfor %}
-
-
-                    <ul border>
-                        <a href="{{ item.link }}" target="_blank" style="display: inline-block">
-                            <i class="fa-solid fa-plus"></i>
-                            &ensp;Добавить ссылку
-                        </a>
-                    </ul>
-
-
+                {% endif %}
+            {% endfor %}
+            <ul border>
+                <a href="{{ item.link }}" target="_blank" style="display: inline-block">
+                    <i class="fa-solid fa-plus"></i>
+                    &ensp;Добавить ссылку
+                </a>
             </ul>
-        {% endfor %}
-        <ul class="border border-secondary p-3 mb-3" id="addblock">
-            <button class="btn btn-link" onclick="
-                or = course.blocks.length + 1
-                course.blocks.push({title: 'Новый блок ' + or, order: or, items: []});
-                $('#addblock').prev().after($newBlock(or));">
-                <i class="fa-solid fa-plus"></i>
-                &ensp;Добавить блок
-            </button>
         </ul>
-    </p>
+    {% endfor %}
+    <ul class="border border-secondary p-3 mb-3" id="addblock">
+        <button class="btn btn-link" onclick="
+            or = course.blocks.length + 1
+            course.blocks.push({title: 'Новый блок ' + or, order: or, items: []});
+            $('#addblock').prev().after($newBlock(or));">
+            <i class="fa-solid fa-plus"></i>
+            &ensp;Добавить блок
+        </button>
+    </ul>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/jq-attrchange/dist/jq-attrchange.min.js"></script>
 
+<script>
+function DeleteCourse() {
+     window.location.href = '/course/{{ course.title }}/delete';
+}
+</script>
+
+<script>
+    function moveBlock(input) {
+      var block = $(input).closest('.block');
+      var order = parseInt(block.attr('data-order'), 10);
+      var newOrder = parseInt(input.value, 10);
+
+      if (newOrder !== order) {
+        var allBlocks = $('#allblocks');
+        var blocks = allBlocks.children('.block');
+
+        if (newOrder < 1 || newOrder > blocks.length) {
+          input.value = order;
+          return;
+        }
+
+        var minOrder = Math.min(newOrder, order);
+        var maxOrder = Math.max(newOrder, order);
+
+        blocks.each(function () {
+          var currentOrder = parseInt($(this).attr('data-order'), 10);
+          if (currentOrder >= minOrder && currentOrder <= maxOrder) {
+            if ($(this).find('.order-input').is(input)) {
+              $(this).attr('data-order', newOrder);
+            } else if (newOrder < order) {
+              $(this).attr('data-order', currentOrder + 1);
+              $(this).find('.order-input').val(currentOrder + 1);
+            } else {
+              $(this).attr('data-order', currentOrder - 1);
+              $(this).find('.order-input').val(currentOrder - 1);
+            }
+          }
+        });
+
+        if (newOrder < order) {
+          block.insertBefore(blocks.eq(newOrder - 1));
+        } else {
+          block.insertAfter(blocks.eq(newOrder - 1));
+        }
+      }
+    }
+
+</script>
+<script>
+
+</script>
 <script>
     var course = JSON.parse('{{ courseJSON|safe }}');
     console.log(course)
 
-    $(document).ready(function() {
-        $('.block').attrchange({
-            trackValues: true,
-            callback: function(event) {
-                if (event.attributeName == 'data-order') {
-                    var order = $(this).attr('data-order');
-                    console.log(order);
-                }
-            }
-        });
-    });
 
 
 
     function $newBlock(n){
-        return $(`<ul class="border border-secondary p-3 mb-3">
-                    <input type="text"  onchange="course.blocks[` + n + ` - 1].title = $(this).val();console.log(course);" value="Новый блок ` + n + `">
-                    <ul border>
-                        <a href="{{ item.link }}" target="_blank" style="display: inline-block">
-                            <i class="fa-solid fa-plus"></i>
-                            &ensp;Добавить ссылку
-                        </a>
-                    </ul>
-                </ul>`);
+        return $(`
+         <ul class="border border-secondary p-3 mb-3 block" data-order="` + n + `" >
+            <input type="number" onchange="moveBlock(this)" class="order-input" data-order="` + n + `" name="order" min="1" step="-1" value="` + n +`" style="width: 3rem;">
+            <input type="text" onchange="course.blocks[$(this).closest('.block').data('order') - 1].title = $(this).val();" value="Новый блок ` + n +`">
+
+            <ul border>
+                <a href="" target="_blank" style="display: inline-block">
+                    <i class="fa-solid fa-plus"></i>
+                    &ensp;Добавить ссылку
+                </a>
+            </ul>
+        </ul>
+        `);
     }
 
 
