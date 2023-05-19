@@ -22,13 +22,14 @@ def CourseView(request, title):
 @login_required
 def EditView(request, title):
     if request.method == 'POST':
-        course_json = json.loads(request.body)['course_json']
+        course_json = json.loads(request.body)
+        print(course_json)
         update_course_from_json(course_json)
         return JsonResponse({'status': 'success', 'message': 'Course updated successfully.'})
     else:
         course = get_object_or_404(Course, title=title)
-
-        return render(request, 'course/edit.html', {'course': course, 'courseJSON': course_detail(course)})
+        print(cd := course_detail(course))
+        return render(request, 'course/edit.html', {'course': course, 'courseJSON': cd})
 
 
 @login_required
@@ -40,7 +41,7 @@ def DeleteView(request, title):
 
 @login_required
 def NewCourseView(request):
-    course = Course.objects.create(title='Новый курс', visible=False)
+    course = Course.objects.create(title='Новый курс', hidden=True)
     return redirect('/course/' + str(course.title) + '/edit')
 
 
@@ -86,9 +87,7 @@ def course_detail(course):
 
     return json.dumps(course_dict)
 
-
 def update_course_from_json(course_dict):
-    course_dict = json.loads(course_dict)
     print(course_dict['id'])
     course_id = course_dict['id']
     course = Course.objects.get(id=course_id)
@@ -96,14 +95,20 @@ def update_course_from_json(course_dict):
     # Update course fields
     course.title = course_dict['title']
     course.cover = course_dict['cover']
-    course.visible = course_dict['visible']
+    course.hidden = course_dict['hidden']
     course.save()
+
+    # Lists to store IDs of blocks and items present in the JSON
+    block_ids = []
+    item_ids = []
 
     # Update or create blocks and items
     for block_dict in course_dict['blocks']:
+        print(block_dict['title'])
         block_title = block_dict['title']
         block_order = block_dict['order']
         block, _ = Block.objects.get_or_create(course=course, title=block_title, order=block_order)
+        block_ids.append(block.id)  # Add block ID to the list
 
         for item_dict in block_dict['items']:
             item_order = item_dict['order']
@@ -114,3 +119,8 @@ def update_course_from_json(course_dict):
             item.name = item_name
             item.link = item_link
             item.save()
+            item_ids.append(item.id)  # Add item ID to the list
+
+    # Delete blocks and items not present in the JSON
+    Block.objects.filter(course=course).exclude(id__in=block_ids).delete()
+    Item.objects.filter(block__course=course).exclude(id__in=item_ids).delete()

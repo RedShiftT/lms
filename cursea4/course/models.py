@@ -20,12 +20,16 @@ class Course(models.Model):
 
     def save(self, *args, **kwargs):
         # Check if the course name already exists
-        if Course.objects.filter(title=self.title).exists():
-            # Append a number to the course name
-            i = 2
-            while Course.objects.filter(title=f'{self.title} {i}').exists():
-                i += 1
-            self.title = f'{self.title} {i}'
+        existing_courses = Course.objects.filter(title=self.title)
+        if existing_courses.exists():
+            # Exclude the current course object from the query
+            existing_courses = existing_courses.exclude(pk=self.pk)
+            if existing_courses.exists():
+                # Append a number to the course name
+                i = 2
+                while Course.objects.filter(title=f'{self.title} {i}').exists():
+                    i += 1
+                self.title = f'{self.title} {i}'
 
         super().save(*args, **kwargs)
 

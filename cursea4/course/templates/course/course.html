@@ -8,8 +8,8 @@
 {% block content%}
 <style>
     .modal-dialog-centered {
-      min-height: 25% !important;
-      max-height: 25% !important;
+      min-height: 15rem !important;
+      max-height: 15rem !important;
       display: flex !important;
       align-items: center !important;
     }
@@ -47,7 +47,7 @@
         </span>
     </h4>
     <p class="mbr-text mbr-fonts-style display-7">
-        {% for block in course.blocks.all %}
+        {% for block in course.blocks.all|dictsort:"order" %}
             <ul>
                 {% if block.title %}
                 <h6 class="card-title mbr-fonts-style mbr-white mb-3 display-5" style="margin-bottom: 0rem !important;">
@@ -55,7 +55,7 @@
                 </h6>
                 {%endif%}
 
-                {% for item in block.items.all %}
+                {% for item in block.items.all|dictsort:"order" %}
                     {% if item.type == 'image' %}
                         <img src="{{ image.link }}" alt="{{ image.name }}">
                     {% elif item.type == 'text' %}

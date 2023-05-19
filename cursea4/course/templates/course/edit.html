@@ -8,8 +8,8 @@
 {% block content%}
 <style>
     .modal-dialog-centered {
-      min-height: 25% !important;
-      max-height: 25% !important;
+      min-height: 15rem !important;
+      max-height: 15rem !important;
       display: flex !important;
       align-items: center !important;
     }
@@ -50,15 +50,15 @@
             &ensp;Удалить
         </button>
     </span>
-    {% for block in course.blocks.all %}
+    {% for block in course.blocks.all|dictsort:"order" %}
         <ul class="border border-secondary p-3 mb-3 block" data-order="{{ block.order }}" >
             <input type="number" onchange="moveBlock(this)" class="order-input" data-order="{{ block.order }}" name="order" min="1" step="-1" value="{{ block.order }}" style="width: 3rem;">
             <input type="text" onchange="course.blocks[$(this).closest('.block').data('order') - 1].title = $(this).val();" value="{{ block.title }}">
-            <button class="btn btn-link buttons" style="padding-top: 0 !important;" onclick="deleteBlock();$(this).parent().remove();">
+            <button class="btn btn-link buttons delete-block" style="padding-top: 0 !important;">
                 <i class="fa-solid fa-trash"></i>
                 &ensp;Удалить
             </button>
-            {% for item in block.items.all %}
+            {% for item in block.items.all|dictsort:"order" %}
                 {% if item.type == 'image' %}
                     <img src="{{ image.link }}" alt="{{ image.name }}">
                 {% elif item.type == 'text' %}
@@ -100,11 +100,13 @@
             'Content-Type': 'application/json',
             'X-CSRFToken': '{{ csrf_token }}',
           },
-          body: JSON.stringify({ course_json: JSON.stringify(course) }),
+          body: JSON.stringify(course),
         });
 
         const data = await response.json();
         console.log(data);
+        window.location.href = '/course/' + course.title;
+
       } catch (error) {
         console.error('Error:', error);
       }
@@ -168,27 +170,38 @@ function DeleteCourse() {
 
 </script>
 <script>
+    $(document).ready(function() {
+      $('.delete-block').each(function() {
+        $(this).on('click', function() {
+            var deletedOrder = getOrder($(this))
+            console.log(deletedOrder)
+            course.blocks.splice(deletedOrder - 1, 1);
+            $(this).parent().remove();
+            $('.block').each(function(index) {
+              var order = $(this).data('order');
+
+              if (order > deletedOrder) {
+                $(this).data('order', order - 1);
+              }
+            });
+            for
+        });
+      });
+    });
+
+
+
+
+
+
 
 </script>
 <script>
     var course = JSON.parse('{{ courseJSON|safe }}');
     console.log(course)
 
-    function getOrder() {
-        return $(this).closest('.block').data('order')
-    }
-
-    function deleteBlock() {
-        var deletedOrder = getOrder()
-        course.blocks.splice(deletedOrder - 1, 1);
-        $('.block').each(function(index) {
-          var order = $(this).data('order');
-
-          if (order > deletedOrder) {
-            $(this).data('order', order - 1);
-          }
-        });
-
+    function getOrder(el) {
+        return el.closest('.block').data('order')
     }
 
 
@@ -202,8 +215,8 @@ function DeleteCourse() {
         return $(`
          <ul class="border border-secondary p-3 mb-3 block" data-order="` + n + `" >
             <input type="number" onchange="moveBlock(this)" class="order-input" data-order="` + n + `" name="order" min="1" step="-1" value="` + n +`" style="width: 3rem;">
-            <input type="text" onchange="course.blocks[getOrder() - 1].title = $(this).val();" value="Новый блок ` + n +`">
-            <button class="btn btn-link buttons" style="padding-top: 0 !important;" onclick="deleteBlock();$(this).parent().remove();"><i class="fa-solid fa-trash"></i>&ensp;Удалить</button>
+            <input type="text" onchange="course.blocks[getOrder($(this)) - 1].title = $(this).val();" value="Новый блок ` + n +`">
+            <button class="btn btn-link buttons" style="padding-top: 0 !important;"><i class="fa-solid fa-trash"></i>&ensp;Удалить</button>
             <ul border>
                 <a href="" target="_blank" style="display: inline-block">
                     <i class="fa-solid fa-plus"></i>
