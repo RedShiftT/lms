@@ -1,25 +1,26 @@
-from django.db.models import Prefetch
+
 from django.shortcuts import render, get_object_or_404, redirect
-from django.template.loader import render_to_string
-from django.db.models import Q
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.admin.views.decorators import staff_member_required
 from .models import Course, Block, Item
-from django.views import View
-from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.views.generic import TemplateView, ListView
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.core import serializers
 import json
-
+from django.http import HttpResponse
 
 @login_required
 def CourseView(request, title):
     course = get_object_or_404(Course, title=title)
-    return render(request, 'course/course.html', {'course': course})
 
+    if (request.user.group.first() in course.groups.all()) or (request.user in course.lector.all()):
+        return render(request, 'course/course.html', {'course': course})
+    else:
+        return HttpResponse('403')
 
-@login_required
+@staff_member_required
+@user_passes_test(lambda u: u.groups.filter(name='lector').exists())
 def EditView(request, title):
     if request.method == 'POST':
         course_json = json.loads(request.body)
@@ -32,14 +33,14 @@ def EditView(request, title):
         return render(request, 'course/edit.html', {'course': course, 'courseJSON': cd})
 
 
-@login_required
+@staff_member_required
 def DeleteView(request, title):
     course = get_object_or_404(Course, title=title)
     course.delete()
     return redirect('/course/')
 
 
-@login_required
+@staff_member_required
 def NewCourseView(request):
     course = Course.objects.create(title='Новый курс', hidden=True)
     return redirect('/course/' + str(course.title) + '/edit')
@@ -54,6 +55,12 @@ def AllСourseView(request):
     else:
         courses = Course.objects.all()
 
+    gr = request.user.group.first()
+    if gr:
+        if gr.name == 'lector':
+            courses = Course.objects.filter(lector=request.user)
+        else:
+            courses = courses.filter(groups__name=gr)
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         html = render_to_string('course/cards.html', {'courses': courses})
@@ -92,23 +99,20 @@ def update_course_from_json(course_dict):
     course_id = course_dict['id']
     course = Course.objects.get(id=course_id)
 
-    # Update course fields
     course.title = course_dict['title']
     course.cover = course_dict['cover']
     course.hidden = course_dict['hidden']
     course.save()
 
-    # Lists to store IDs of blocks and items present in the JSON
     block_ids = []
     item_ids = []
 
-    # Update or create blocks and items
     for block_dict in course_dict['blocks']:
         print(block_dict['title'])
         block_title = block_dict['title']
         block_order = block_dict['order']
         block, _ = Block.objects.get_or_create(course=course, title=block_title, order=block_order)
-        block_ids.append(block.id)  # Add block ID to the list
+        block_ids.append(block.id)
 
         for item_dict in block_dict['items']:
             item_order = item_dict['order']
@@ -119,8 +123,7 @@ def update_course_from_json(course_dict):
             item.name = item_name
             item.link = item_link
             item.save()
-            item_ids.append(item.id)  # Add item ID to the list
+            item_ids.append(item.id)
 
-    # Delete blocks and items not present in the JSON
     Block.objects.filter(course=course).exclude(id__in=block_ids).delete()
     Item.objects.filter(block__course=course).exclude(id__in=item_ids).delete()

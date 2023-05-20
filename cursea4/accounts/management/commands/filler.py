@@ -1,11 +1,7 @@
 from faker import Faker
 from django.core.management.base import BaseCommand
-# from accounts.models import Group
-from accounts.models import CustomUserManager, CustomGroup
+from accounts.models import CustomGroup
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
-from accounts.models import CustomUser
 
 
 class Command(BaseCommand):
@@ -14,19 +10,21 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         user_manager = get_user_model().objects
-        user_manager.create_superuser(email='a@a.us', password='1', first_name='Клоунович', last_name='Леха', father_name="Клоунович")
+        user_manager.create_superuser(email='admin@lms.edu', password='Gjcnfdnt5', first_name='Админстратор', last_name='Хостингов', father_name="Сетевикович")
 
 
         fake = Faker()
 
 
         for g in ['101', '102', '201', '202']:
+            student = user_manager.create_user(email=f'stundent{g}@lms.edu', password=f'cneltyn{g}', first_name='Алексей',
+                                     last_name='Алексеев', father_name="Алексеевич")
             try:
                 group = CustomGroup(name=str(g))
                 group.save()
             except:
-                pass
-
+                continue
+            student.group.add(group)
             for _ in range(5):
                 try:
                     user = user_manager.create_user(
@@ -36,6 +34,11 @@ class Command(BaseCommand):
                         last_name=fake.last_name(),
                         father_name=fake.first_name_male(),
                     )
-                    group.user_set.add(user)
+                    user.group.add(group)
                 except:
-                    pass
+                    print('oops')
+
+        lecGr = CustomGroup(name='lector')
+        lecGr.save()
+        lector = user_manager.create_user(email=f'lector@lms.edu', password=f'ktrwbz', first_name='Евгений', last_name='Евгеньев', father_name="Евгениевич")
+        lector.group.add(lecGr)

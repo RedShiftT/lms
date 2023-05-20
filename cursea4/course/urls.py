@@ -1,5 +1,4 @@
 from django.urls import path
-from . import views
 from .views import CourseView, AllСourseView, EditView, DeleteView, NewCourseView
 
 app_name = 'course'
@@ -10,5 +9,4 @@ urlpatterns = [
     path('new', NewCourseView, name='new'),
     path('<str:title>/edit', EditView, name='edit'),
     path('<str:title>', CourseView, name='course'),
-
 ]

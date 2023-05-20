@@ -12,7 +12,7 @@ def login_view(request):
             login(request, user)
             return redirect('/course/')
         else:
-            messages.success(request, "Password huita")
+            messages.success(request, "Пароль неверный!")
             return render(request, 'accounts/auth.html', {'error': 'Invalid username or password.'})
     else:
         return render(request, 'accounts/auth.html')

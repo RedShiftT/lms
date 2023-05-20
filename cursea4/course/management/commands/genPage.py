@@ -2,18 +2,20 @@ import os
 
 from django.core.management import BaseCommand
 from course.models import Course, Block, Item
-from accounts.models import CustomGroup
+from accounts.models import CustomGroup, CustomUser
 import random
+
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
         group1 = CustomGroup.objects.get(name="101")
         group2 = CustomGroup.objects.get(name="102")
+        lector = CustomUser.objects.get(email='lector@lms.edu')
         course = Course.objects.create(title='Схемотехника', cover='/static/resources/images/1.jpg', hidden=False)
+        course.lector.add(lector)
         course.groups.add(group1)
         course.groups.add(group2)
-
         block = Block.objects.create(course=course, title='Видеоуроки')
         content = ['https://www.youtube.com/watch?v=9IKzf6Medww',
                    'https://www.youtube.com/watch?v=pkt_uw5yZio',
